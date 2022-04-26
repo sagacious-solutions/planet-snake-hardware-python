@@ -11,6 +11,9 @@ def handle_parameter():
     commands are.
 
         - reset_db : This drops all tables from the database and recreates them
+
+
+    If you are seeing this message, you passed in an invalid parameter
     """
     param = sys.argv[1]
 
