@@ -1,0 +1,6 @@
+# These are Dev Specific Dependencies
+# But imports the common ones too
+
+-r common.txt
+black==20.8b1
+flake8==4.0.1
