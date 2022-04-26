@@ -1,11 +1,14 @@
-database_schema = [
+"""This is the schema to create our database tables as well as drop the tables if they exist"""
+
+database_drop_tables = [  
   "DROP TABLE IF EXISTS hardware_state CASCADE;",
   "DROP TABLE IF EXISTS environmental_reading CASCADE;",
   "DROP TABLE IF EXISTS heater_state CASCADE;",
   "DROP TABLE IF EXISTS heater CASCADE;",
   "DROP TABLE IF EXISTS sensor CASCADE;",
+  ]
 
-
+database_schema = [
   """CREATE TABLE hardware_state(
     id SERIAL PRIMARY KEY,
     date_time TIMESTAMP NOT NULL DEFAULT Now()

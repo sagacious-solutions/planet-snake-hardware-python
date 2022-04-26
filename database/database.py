@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 
 from Configuration import log
-from database.migrations.schema import database_schema
+from database.migrations.schema import database_schema, database_drop_tables
 
 load_dotenv()
 
@@ -25,18 +25,25 @@ db_connection = psycopg2.connect(
 )
 
 
-def create_database():
+def create_database(reset_database: bool = True):
+    db_commands = database_schema
+
+    if reset_database:
+        db_commands = database_drop_tables + db_commands
+
     try:
         cursor = db_connection.cursor()
-        for command in database_schema :
+        for command in db_commands:
             cursor.execute(command)
-            print(f"Now executing command : \n {command}")
+            print(
+                f"\n-------------------------\nNow executing command : \n {command}\n"
+            )
 
         cursor.close()
         db_connection.commit()
-    except Exception as e :
+    except Exception as e:
         log.exception(e)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     globals()[sys.argv[1]]()
