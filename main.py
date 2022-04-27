@@ -1,7 +1,8 @@
 import sys
+import os
 
 from Configuration import log
-import database.database as database
+from database.database import Database
 
 
 def handle_parameter():
@@ -13,10 +14,11 @@ def handle_parameter():
         - reset_db : This drops all tables from the database and recreates them
         - seed_db : Seed database with sensor and heater values
 
-
     If you are seeing this message, you passed in an invalid parameter
     """
     param = sys.argv[1]
+    db_url = os.environ["DATABASE_URL"]
+    database = Database(db_url)
 
     if param == "reset_db":
         database.create_database(reset_database=True)
