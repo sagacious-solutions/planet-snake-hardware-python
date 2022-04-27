@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 from Configuration import log
 from database.migrations.schema import database_schema, database_drop_tables
 
+import database.migrations.seeds as seeds
+
 load_dotenv()
 
 SCHEMA_FILEPATH = Path.cwd() / "database" / "migrations" / "01_schema.sql"
@@ -35,9 +37,7 @@ def create_database(reset_database: bool = True):
         cursor = db_connection.cursor()
         for command in db_commands:
             cursor.execute(command)
-            print(
-                f"\n-------------------------\nNow executing command : \n {command}\n"
-            )
+            _print_sql_command(command)
 
         cursor.close()
         db_connection.commit()
@@ -45,5 +45,30 @@ def create_database(reset_database: bool = True):
         log.exception(e)
 
 
-if __name__ == "__main__":
-    globals()[sys.argv[1]]()
+def _print_sql_command(cmd, values=None):
+    print(f"\n-------------------------\nNow executing command : \n {cmd}\n")
+    if values:
+        print(f"Values: {values}\n")
+
+
+def _run_command(cmd, values=None):
+    """Executes a command for postgres, in which values are passed"""
+    try:
+        cursor = db_connection.cursor()
+        cursor.execute(cmd, (*values,))
+        _print_sql_command(cmd, values)
+        cursor.close()
+        db_connection.commit()
+    except Exception as e:
+        log.exception(e)
+
+
+def seed_database():
+    # Sensors
+    _run_command(seeds.sensor_seed_sql, seeds.basking_sensor_values)
+    _run_command(seeds.sensor_seed_sql, seeds.warmhide_sensor_values)
+    _run_command(seeds.sensor_seed_sql, seeds.coolhide_sensor_values)
+
+    # Heaters on relays
+    _run_command(seeds.heater_seed_sql, seeds.basking_heater_values)
+    _run_command(seeds.heater_seed_sql, seeds.hide_heater_values)

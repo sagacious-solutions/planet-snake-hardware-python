@@ -11,6 +11,7 @@ def handle_parameter():
     commands are.
 
         - reset_db : This drops all tables from the database and recreates them
+        - seed_db : Seed database with sensor and heater values
 
 
     If you are seeing this message, you passed in an invalid parameter
@@ -19,6 +20,9 @@ def handle_parameter():
 
     if param == "reset_db":
         database.create_database(reset_database=True)
+        return
+    if param == "seed_db":
+        database.seed_database()
         return
 
     print(handle_parameter.__doc__)
