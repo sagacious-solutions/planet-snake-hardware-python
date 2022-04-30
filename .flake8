@@ -1,0 +1,8 @@
+[flake8]
+ignore = W503, # Line break occurred before a binary operator - anti-black
+exclude = .git, __pycache__
+max-line-length = 88
+
+per-file-ignores =
+    Configuration.py:F401
+    main.py:F401
