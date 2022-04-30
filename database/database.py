@@ -82,6 +82,69 @@ class Database:
         self.run_sql_command(seeds.heater_seed_sql, seeds.basking_heater_values)
         self.run_sql_command(seeds.heater_seed_sql, seeds.hide_heater_values)
 
+    def run_sql_fetchall_command(self, cmd, values=None):
+        """Executes a command for postgres, in which values are passed"""
+        try:
+            cursor = self.connection.cursor()
+            if values:
+                cursor.execute(cmd, (*values,))
+            else:
+                cursor.execute(cmd)
+            self.print_sql_command(cmd, values)
+            self.connection.commit()
+            return cursor.fetchall()
+        except Exception as e:
+            log.exception(e)
+        finally:
+            cursor.close()
+
+    def fetch_temperatures_for_snapshot(self, reading_id, print_data=False) -> list:
+        fetch_temps_SQL = """SELECT * FROM environmental_reading 
+        WHERE reading_id = %s
+        ORDER BY sensor_id
+        """
+
+        data = self.run_sql_fetchall_command(fetch_temps_SQL, (reading_id,))
+
+        if print_data:
+            for d in data:
+                print(
+                    "\n_____________________\n"
+                    "environmental_reading\n"
+                    f"Primary Key:{d[0]}\n"
+                    f"reading_id:{d[1]}\n"
+                    f"sensor_id:{d[2]}\n"
+                    f"temperature_c:{d[3]}\n"
+                    f"humidity:{d[4]}\n"
+                )
+            if not data:
+                print("Nothing was returned by fetch_temperatures_for_snapshot.")
+
+        return data
+
+    def fetch_heater_state(self, reading_id, print_data=False) -> list:
+        fetch_temps_SQL = """SELECT * FROM heater_state 
+        WHERE reading_id = %s
+        ORDER BY heater_id
+        """
+
+        data = self.run_sql_fetchall_command(fetch_temps_SQL, (reading_id,))
+
+        if print_data:
+            for d in data:
+                print(
+                    "\n_____________________\n"
+                    "environmental_reading\n"
+                    f"Primary Key:{d[0]}\n"
+                    f"reading_id:{d[1]}\n"
+                    f"heater_id:{d[2]}\n"
+                    f"turned_on:{d[3]}\n"
+                )
+            if not data:
+                print("Nothing was returned by fetch_heater_state.")
+
+        return data
+
     def insert_into_hardware_state(self) -> int:
         """Creates a new timestamp entry and ID in the database for a hardware state
         snapshot
@@ -95,12 +158,26 @@ class Database:
         return self.run_sql_command(hardware_state_sql)
 
     def insert_into_environmental_reading(
-        reading_id: int, sensor_id: int, temperature_c: int, humidity=0
+        self, reading_id: int, sensor_id: int, temperature_c: int, humidity=0
     ):
         environmental_reading_sql = """
         INSERT INTO environmental_reading(reading_id, sensor_id, temperature_c, humidity)
-        
-        """  # noqa E:501
+        VALUES(%s,%s,%s,%s)"""  # noqa E:501
+
+        return self.run_sql_command(
+            environmental_reading_sql, (reading_id, sensor_id, temperature_c, humidity)
+        )
+
+    def insert_into_heater_state(self, reading_id, heater_id, turned_on):
+        """Update database with current state of a single heater."""
+
+        add_heater_state_sql = """
+        INSERT INTO heater_state (reading_id, heater_id, turned_on)
+        VALUES(%s,%s,%s)
+        """
+        return self.run_sql_command(
+            add_heater_state_sql, (reading_id, heater_id, turned_on)
+        )
 
     def create_database(self, reset_database: bool = True):
         db_commands = database_schema
